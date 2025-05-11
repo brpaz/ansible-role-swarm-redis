@@ -1,6 +1,6 @@
-# Redis Docker Swarm Role
+# Ansible Swarm Redis
 
-> An opinionated role to deploy a redis container in a Docker Swarm machine.
+> An Ansible role to deploy a Redis service to a Docker Swarm cluster.
 
 ## Requirements
 
@@ -58,15 +58,16 @@ This role includes the following variables for configuration:
 | `redis_version`         | `7.0.11`                    | Redis version to use                                 |
 | `redis_image`           | `redis:{{ redis_version }}` | Redis Docker image                                   |
 | `redis_port`            | `6379`                      | Port Redis will listen on                            |
+| `redis_port_mode`       | `ingress`                   | Docker service publish mode (ingress or host)        |
 | `redis_password`        | `""`                        | Password for Redis authentication (empty by default) |
-| `redis_conf_dir`        | `/etc/redis`                | Local directory for configs                          |
-| `redis_conf_mount_path` | `/usr/local/etc/redis`      | Path inside container                                |
-| `redis_networks`        | `[{name: "swarm_net"}]`     | Docker swarm network name                            |
-| `redis_docker_network`  | `swarm_net`                 | Primary Docker network                               |
-| `redis_service_name`    | `redis`                     | Name of the Redis service                            |
-| `redis_replicas`        | `1`                         | Number of service replicas                           |
 | `redis_conf`            | See below                   | Redis configuration settings                         |
-| `redis_resources`       | See below                   | Resource limits                                      |  |
+| `redis_networks`        | `[{name: "swarm_network"}]` | Docker swarm network configuration                   |
+| `redis_conf_dir`        | `/etc/redis`                | Local directory for configs                          |
+| `redis_service_name`    | `redis`                     | Name of the Redis service                            |
+| `redis_cpu_requests`    | `0.1`                       | CPU resource requests                                |
+| `redis_cpu_limits`      | `0.5`                       | CPU resource limits                                  |
+| `redis_memory_requests` | `32M`                       | Memory resource requests                             |
+| `redis_memory_limits`   | `1G`                        | Memory resource limits                               |
 
 ### Redis Configuration Settings (`redis_conf`)
 
@@ -79,37 +80,9 @@ redis_conf:
   requirepass: "{{ redis_password }}"
 ```
 
-### Resource Limits (`redis_resources`)
-
-Default resource limits:
-
-```yaml
-redis_resources:
-  reservations:
-    cpus: "0.1"
-    memory: "32M"
-  limits:
-    cpus: "0.5"
-    memory: "128M"
-```
-
-### Restart Policy (`redis_restart_policy`)
-
-Default restart policy:
-
-```yaml
-redis_restart_policy:
-  condition: "on-failure"
-  delay: "5s"
-  max_attempts: 3
-  window: "60s"
-```
-
-You can modify any of these variables as needed in your playbook.
-
 ## Dependencies
 
-- community.docker collection
+- [community.docker](https://docs.ansible.com/ansible/latest/collections/community/docker/index.html) collection
 
 ## Example Playbook
 
@@ -125,9 +98,10 @@ You can modify any of these variables as needed in your playbook.
       bind: "0.0.0.0"
       maxmemory: "256mb"
       maxmemory-policy: "allkeys-lru"
-    redis_resources:
-      limits:
-        memory: "512M"
+    redis_cpu_requests: 0.1
+    redis_cpu_limits: 0.5
+    redis_memory_requests: "32M"
+    redis_memory_limits: "1G"
   roles:
     - brpaz.swarm_redis
 ```
