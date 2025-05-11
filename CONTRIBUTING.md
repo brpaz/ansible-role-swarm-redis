@@ -1,4 +1,4 @@
-# Contributing to ansible-role-swarm
+# Contributing to ansible-role-swarm-redis
 
 First off, thanks for taking the time to contribute!
 
@@ -6,7 +6,7 @@ The following is a set of guidelines for contributing to this Ansible role. Thes
 
 ## Table of Contents
 
-- [Contributing to ansible-role-swarm](#contributing-to-ansible-role-swarm)
+- [Contributing to ansible-role-swarm-redis](#contributing-to-ansible-role-swarm-redis)
   - [Table of Contents](#table-of-contents)
   - [Development Environment Setup](#development-environment-setup)
     - [Prerequisites](#prerequisites)
@@ -36,8 +36,8 @@ To contribute to this project, you'll need:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/brpaz/ansible-role-swarm.git
-   cd ansible-role-swarm
+   git clone https://github.com/brpaz/ansible-role-swarm-redis.git
+   cd ansible-role-swarm-redis
    ```
 
 2. Setup direnv:
