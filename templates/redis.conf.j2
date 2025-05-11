@@ -1,0 +1,6 @@
+# Redis configuration file
+# https://github.com/orchardup/docker-redis/blob/master/redis.conf
+{% for key, value in redis_conf.items() %}
+{{ key }} {{ value }}
+{% endfor %}
+

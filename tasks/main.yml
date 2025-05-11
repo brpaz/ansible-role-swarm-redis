@@ -1,0 +1,59 @@
+- name: Ensure Redis configuration directory exists
+  ansible.builtin.file:
+    path: "{{ redis_conf_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0750"
+  become: true
+
+- name: Generate redis.conf from template
+  ansible.builtin.template:
+    src: redis.conf.j2
+    dest: "{{ redis_conf_dir }}/redis.conf"
+    owner: root
+    group: root
+    mode: "0640"
+  become: true
+
+- name: Deploy Redis service
+  community.docker.docker_swarm_service:
+    name: "{{ redis_service_name }}"
+    state: present
+    image: "{{ redis_image }}"
+    networks: "{{ redis_networks }}"
+    publish:
+      - target_port: "{{ redis_port }}"
+        published_port: "{{ redis_port }}"
+        protocol: tcp
+        mode: "{{ redis_port_mode }}"
+    mounts:
+      - type: bind
+        source: "{{ redis_conf_dir }}"
+        target: /conf
+    reservations:
+      cpus: "{{ redis_cpu_requests }}"
+      memory: "{{ redis_memory_requests }}"
+    limits:
+      cpus: "{{ redis_cpu_limits }}"
+      memory: "{{ redis_memory_limits }}"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
+    restart_config:
+      condition: on-failure
+      delay: 5s
+      max_attempts: 3
+      window: 60s
+  register: redis_service_result
+
+- name: Wait for Redis container to be in healthy state
+  ansible.builtin.command: docker ps --filter "name=redis" --format {% raw %}"{{.Status}}"{% endraw %}
+  register: container_status
+  until: "'healthy' in container_status.stdout"
+  retries: 10
+  delay: 5
+  changed_when: false
